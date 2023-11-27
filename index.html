@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Styling for the canvas, ball, and coordinates display */
+        #ballCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        #ball {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        #coordinatesDisplay {
+            display: none; /* Comment out this line to display the coordinates box. */
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+            z-index: 2;
+        }
+        .coordinate {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="ballCanvas"></canvas>
+    <div id="ball"></div>
+    <div id="coordinatesDisplay"></div>
+
+    <script>
+        // Initialize elements and settings
+        const ball = document.getElementById('ball');
+        const canvas = document.getElementById('ballCanvas');
+        const ctx = canvas.getContext('2d');
+        const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+        const colors = ['red', 'blue', 'green', 'purple', 'black', 'orange', 'pink', 'brown', 'navy', 'maroon'];
+        const ballColor = colors[Math.floor(Math.random() * colors.length)];
+        ball.style.backgroundColor = ballColor;
+
+        let velocity = { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2 };
+        let position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let windowId = sessionStorage.getItem('windowId');
+        if (!windowId) {
+            windowId = `window_${Date.now()}_${Math.random()}`;
+            sessionStorage.setItem('windowId', windowId);
+        }
+
+        // Function to get the screen position
+        function getScreenPosition() {
+            return { x: window.screenX, y: window.screenY };
+        }
+
+        // Update and display coordinates of balls
+        function updateCoordinatesDisplay() {
+            const currentTime = Date.now();
+            coordinatesDisplay.innerHTML = '';
+            const screenPos = getScreenPosition();
+
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('ballPosition_')) {
+                    const ballData = JSON.parse(localStorage.getItem(key));
+                    if (currentTime - ballData.timestamp > 5000) {
+                        localStorage.removeItem(key);
+                        return;
+                    }
+
+                    const adjustedX = ballData.x + screenPos.x;
+                    const adjustedY = ballData.y + screenPos.y;
+
+                    const coordDiv = document.createElement('div');
+                    coordDiv.className = 'coordinate';
+                    coordDiv.style.color = ballData.color;
+                    coordDiv.textContent = `Ball ${key.split('_')[1]}: X = ${adjustedX.toFixed(2)}, Y = ${adjustedY.toFixed(2)}`;
+                    coordinatesDisplay.appendChild(coordDiv);
+                }
+            });
+        }
+
+        // Draw lines to other balls
+        function drawLinesToOtherBalls() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const screenPos = getScreenPosition();
+            const currentBallAdjustedPos = { 
+                x: position.x + 25, 
+                y: position.y + 25
+            };
+
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('ballPosition_') && key !== `ballPosition_${windowId}`) {
+                    const otherBallData = JSON.parse(localStorage.getItem(key));
+                    const otherBallAdjustedPos = {
+                        x: otherBallData.x - screenPos.x + 25,
+                        y: otherBallData.y - screenPos.y + 25
+                    };
+
+                    const dx = otherBallAdjustedPos.x - currentBallAdjustedPos.x;
+                    const dy = otherBallAdjustedPos.y - currentBallAdjustedPos.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const lineWidth = Math.max(50 - (49 * distance / 500), 1);
+
+                    ctx.beginPath();
+                    ctx.moveTo(currentBallAdjustedPos.x, currentBallAdjustedPos.y);
+                    ctx.lineTo(otherBallAdjustedPos.x, otherBallAdjustedPos.y);
+                    ctx.strokeStyle = otherBallData.color; 
+                    ctx.lineWidth = lineWidth;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(otherBallAdjustedPos.x, otherBallAdjustedPos.y, 25, 0, 2 * Math.PI);
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillStyle = otherBallData.color;
+                    ctx.fill();
+                    ctx.strokeStyle = otherBallData.color;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+        }
+
+        // Animation function
+        function animate() {
+            position.x += velocity.x;
+            position.y += velocity.y;
+
+            if (position.x < 0 || position.x > window.innerWidth - 50) velocity.x *= -1;
+            if (position.y < 0 || position.y > window.innerHeight - 50) velocity.y *= -1;
+
+            ball.style.left = `${position.x}px`;
+            ball.style.top = `${position.y}px`;
+
+            const screenPos = getScreenPosition();
+            const ballData = { 
+                x: position.x + screenPos.x, 
+                y: position.y + screenPos.y, 
+                color: ballColor, 
+                timestamp: Date.now() 
+            };
+            localStorage.setItem(`ballPosition_${windowId}`, JSON.stringify(ballData));
+            updateCoordinatesDisplay();
+            requestAnimationFrame(animate);
+            drawLinesToOtherBalls();
+        }
+
+        // Event listeners
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            updateCoordinatesDisplay();
+        });
+
+        setInterval(updateCoordinatesDisplay, 1000);
+        animate();
+    </script>
+</body>
+</html>
