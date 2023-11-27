@@ -3,6 +3,8 @@
 ## Introduction
 Inspired by a fascinating experiment in inter-window communication ([source](https://twitter.com/_nonfigurativ_/status/1727322594570027343)), this project is a foray into the realm of browser-based communication technologies. While acknowledging the simplicity of our approach compared to the original, this project aims to provide an easy-to-understand demonstration of inter-window communication through the use of interconnected balls.
 
+![Screen Recording](screen-recording.gif)
+
 ## Project Concept
 The core idea of this experiment is to utilize a straightforward and visually engaging method to demonstrate inter-window communication. By creating a dynamic and interactive system of balls moving across multiple browser windows, we can observe how data can be shared and synchronized in real-time between different instances of a web application.
 
