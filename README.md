@@ -21,7 +21,7 @@ The core idea of this experiment is to utilize a straightforward and visually en
 The code creates an interactive environment where each ball, represented as a colored circle, moves within the browser window. Their positions are stored in Local Storage, allowing for real-time synchronization across multiple browser instances. The Canvas API is used to draw lines between the balls, visually depicting the connection between them as they move.
 
 ## Getting Started
-1. **Clone the Repository:** [Add repository link here]
+1. **Clone the Repository:** https://github.com/vladimirkhoetsyan/cross-wndow-data-sync
 2. **Open in Multiple Windows:** To fully experience the inter-window communication, open the project in multiple browser windows.
 3. **Interact and Observe:** Watch how the movement of balls is synchronized across windows and how they interact with each other.
 
